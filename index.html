@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A Challenge Awaits...</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 90%;
+            padding: 40px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            position: relative;
+        }
+
+        .stage {
+            display: none;
+            animation: fadeIn 0.6s ease-in;
+        }
+
+        .stage.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h1 {
+            color: #667eea;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            color: #764ba2;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+
+        p {
+            color: #333;
+            font-size: 1.2em;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .riddle-box {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            padding: 25px;
+            border-radius: 15px;
+            margin: 20px 0;
+            border: 3px solid #ff9a76;
+        }
+
+        .puzzle-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin: 30px 0;
+        }
+
+        .puzzle-piece {
+            aspect-ratio: 1;
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            border: 3px solid #764ba2;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .puzzle-piece:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .puzzle-piece.correct {
+            background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
+            animation: pulse 0.5s ease;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        input[type="text"], input[type="number"] {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.1em;
+            border: 3px solid #667eea;
+            border-radius: 10px;
+            margin: 15px 0;
+            transition: all 0.3s ease;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #764ba2;
+            box-shadow: 0 0 10px rgba(118, 75, 162, 0.3);
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.2em;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px 5px;
+            font-weight: bold;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .memory-cards {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin: 30px 0;
+        }
+
+        .card {
+            aspect-ratio: 1;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            border-radius: 15px;
+            cursor: pointer;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.5s;
+        }
+
+        .card.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2em;
+            font-weight: bold;
+        }
+
+        .card-front {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .card-back {
+            background: white;
+            transform: rotateY(180deg);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background: #ddd;
+            border-radius: 10px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.5s ease;
+        }
+
+        .message-box {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            border: 5px solid #ff9a76;
+        }
+
+        .final-message {
+            font-size: 3em;
+            color: #764ba2;
+            font-weight: bold;
+            margin: 30px 0;
+            animation: rainbow 3s linear infinite;
+        }
+
+        @keyframes rainbow {
+            0% { color: #667eea; }
+            25% { color: #764ba2; }
+            50% { color: #f093fb; }
+            75% { color: #f5576c; }
+            100% { color: #667eea; }
+        }
+
+        .photo-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .photo {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 15px;
+            border: 5px solid white;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease;
+        }
+
+        .photo:hover {
+            transform: scale(1.05) rotate(2deg);
+        }
+
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background: #f5576c;
+            position: absolute;
+            animation: confetti-fall 3s linear;
+        }
+
+        @keyframes confetti-fall {
+            to {
+                transform: translateY(100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        .hint {
+            background: rgba(255, 255, 255, 0.8);
+            padding: 10px 20px;
+            border-radius: 10px;
+            margin: 10px 0;
+            font-style: italic;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Stage 1: Welcome -->
+        <div class="stage active" id="stage1">
+            <h1>🎮 Hey Moayad! 🎮</h1>
+            <p>Someone special made this just for you...</p>
+            <p>But you'll have to complete some challenges to see what they want to tell you!</p>
+            <p>Are you ready for this adventure?</p>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress" style="width: 0%"></div>
+            </div>
+            <button onclick="nextStage(2)">LET'S GO! 🚀</button>
+        </div>
+
+        <!-- Stage 2: Riddle Challenge -->
+        <div class="stage" id="stage2">
+            <h2>🧩 Challenge 1: Riddle Time</h2>
+            <div class="riddle-box">
+                <p><strong>Solve this riddle:</strong></p>
+                <p>I speak without a mouth and hear without ears. I have no body, but I come alive with wind. What am I?</p>
+            </div>
+            <input type="text" id="riddleAnswer" placeholder="Type your answer here...">
+            <div class="hint" id="riddleHint" style="display: none;">💡 Think about sound...</div>
+            <button onclick="checkRiddle()">Submit Answer</button>
+            <button onclick="showHint('riddleHint')">Need a Hint?</button>
+        </div>
+
+        <!-- Stage 3: Memory Game -->
+        <div class="stage" id="stage3">
+            <h2>🎴 Challenge 2: Memory Match</h2>
+            <p>Match all the pairs to continue!</p>
+            <div class="memory-cards" id="memoryGame"></div>
+        </div>
+
+        <!-- Stage 4: Math Puzzle -->
+        <div class="stage" id="stage4">
+            <h2>🔢 Challenge 3: Quick Math</h2>
+            <div class="riddle-box">
+                <p>If you have me, you want to share me. If you share me, you don't have me. What am I?</p>
+                <p style="margin-top: 20px;">Just kidding! Here's the real challenge:</p>
+                <p><strong>What's 7 × 6 + 8 - 4?</strong></p>
+            </div>
+            <input type="number" id="mathAnswer" placeholder="Enter the answer...">
+            <button onclick="checkMath()">Submit</button>
+        </div>
+
+        <!-- Stage 5: Sequence Puzzle -->
+        <div class="stage" id="stage5">
+            <h2>🎯 Challenge 4: Tap the Sequence</h2>
+            <p>Remember and tap the sequence in order!</p>
+            <div class="puzzle-grid" id="sequenceGrid"></div>
+            <button onclick="startSequence()" id="startSeqBtn">Start Sequence</button>
+        </div>
+
+        <!-- Stage 6: Final Reveal -->
+        <div class="stage" id="stage6">
+            <h1>🎉 YOU DID IT! 🎉</h1>
+            <div class="message-box">
+                <p style="font-size: 1.5em;">Moayad,</p>
+                <div class="final-message">I LOVE YOU</div>
+                <p style="font-size: 1.3em; color: #764ba2; margin: 20px 0;">You're my best friend and you mean the world to me! 💜</p>
+                <div class="photo-gallery">
+                    <img src="pics/pic1.jpg" alt="Memory 1" class="photo">
+                    <img src="pics/pic2.jpg" alt="Memory 2" class="photo">
+                    <img src="pics/pic3.jpg" alt="Memory 3" class="photo">
+                    <img src="pics/pic4.jpg" alt="Memory 4" class="photo">
+<img src="pics/pic5.jpg" alt="Memory 5" class="photo">
+<img src="pics/pic6.jpg" alt="Memory 6" class="photo">
+<img src="pics/pic7.jpg" alt="Memory 7" class="photo">
+<img src="pics/pic8.jpg" alt="Memory 8" class="photo">
+<img src="pics/pic9.jpg" alt="Memory 9" class="photo">
+<img src="pics/pic10.jpg" alt="Memory 10" class="photo">
+<img src="pics/pic11.jpg" alt="Memory 11" class="photo">
+<img src="pics/pic12.jpg" alt="Memory 12" class="photo">
+<img src="pics/pic13.jpg" alt="Memory 13" class="photo">
+<img src="pics/pic14.jpg" alt="Memory 14" class="photo">
+                </div>
+                <p style="margin-top: 30px; font-size: 1.2em;">Thanks for being an awesome friend! 🌟</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentStage = 1;
+        let memoryCards = ['🎮', '🎮', '🎵', '🎵', '⚡', '⚡', '🌟', '🌟'];
+        let flippedCards = [];
+        let matchedPairs = 0;
+        let sequence = [];
+        let playerSequence = [];
+
+        function updateProgress() {
+            const progress = (currentStage - 1) / 5 * 100;
+            document.getElementById('progress').style.width = progress + '%';
+        }
+
+        function nextStage(stage) {
+            document.getElementById('stage' + currentStage).classList.remove('active');
+            currentStage = stage;
+            document.getElementById('stage' + stage).classList.add('active');
+            updateProgress();
+            
+            if (stage === 3) initMemoryGame();
+            if (stage === 5) initSequenceGame();
+            if (stage === 6) createConfetti();
+        }
+
+        function showHint(hintId) {
+            document.getElementById(hintId).style.display = 'block';
+        }
+
+        function checkRiddle() {
+            const answer = document.getElementById('riddleAnswer').value.toLowerCase();
+            if (answer.includes('echo') || answer.includes('an echo')) {
+                alert('🎉 Correct! Moving to the next challenge!');
+                nextStage(3);
+            } else {
+                alert('❌ Not quite! Try again or use a hint!');
+            }
+        }
+
+        function initMemoryGame() {
+            const gameDiv = document.getElementById('memoryGame');
+            gameDiv.innerHTML = '';
+            memoryCards.sort(() => Math.random() - 0.5);
+            
+            memoryCards.forEach((symbol, index) => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.innerHTML = `
+                    <div class="card-front">?</div>
+                    <div class="card-back">${symbol}</div>
+                `;
+                card.onclick = () => flipCard(card, symbol, index);
+                gameDiv.appendChild(card);
+            });
+        }
+
+        function flipCard(card, symbol, index) {
+            if (flippedCards.length < 2 && !card.classList.contains('flipped')) {
+                card.classList.add('flipped');
+                flippedCards.push({ card, symbol, index });
+
+                if (flippedCards.length === 2) {
+                    setTimeout(checkMatch, 1000);
+                }
+            }
+        }
+
+        function checkMatch() {
+            const [first, second] = flippedCards;
+            
+            if (first.symbol === second.symbol && first.index !== second.index) {
+                matchedPairs++;
+                if (matchedPairs === 4) {
+                    setTimeout(() => {
+                        alert('🎉 Amazing! You matched all pairs!');
+                        nextStage(4);
+                    }, 500);
+                }
+            } else {
+                first.card.classList.remove('flipped');
+                second.card.classList.remove('flipped');
+            }
+            
+            flippedCards = [];
+        }
+
+        function checkMath() {
+            const answer = parseInt(document.getElementById('mathAnswer').value);
+            if (answer === 46) {
+                alert('🎉 Perfect! You\'re a math wizard!');
+                nextStage(5);
+            } else {
+                alert('❌ Not quite! Try again!');
+            }
+        }
+
+        function initSequenceGame() {
+            const grid = document.getElementById('sequenceGrid');
+            grid.innerHTML = '';
+            
+            for (let i = 0; i < 9; i++) {
+                const piece = document.createElement('div');
+                piece.className = 'puzzle-piece';
+                piece.textContent = i + 1;
+                piece.onclick = () => addToPlayerSequence(i + 1, piece);
+                grid.appendChild(piece);
+            }
+        }
+
+        function startSequence() {
+            sequence = [];
+            playerSequence = [];
+            document.querySelectorAll('.puzzle-piece').forEach(p => p.classList.remove('correct'));
+            
+            for (let i = 0; i < 4; i++) {
+                sequence.push(Math.floor(Math.random() * 9) + 1);
+            }
+            
+            document.getElementById('startSeqBtn').disabled = true;
+            showSequence();
+        }
+
+        function showSequence() {
+            sequence.forEach((num, index) => {
+                setTimeout(() => {
+                    const pieces = document.querySelectorAll('.puzzle-piece');
+                    pieces[num - 1].style.background = 'linear-gradient(135deg, #ffd89b 0%, #19547b 100%)';
+                    setTimeout(() => {
+                        pieces[num - 1].style.background = 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)';
+                        if (index === sequence.length - 1) {
+                            document.getElementById('startSeqBtn').disabled = false;
+                        }
+                    }, 500);
+                }, index * 1000);
+            });
+        }
+
+        function addToPlayerSequence(num, piece) {
+            if (document.getElementById('startSeqBtn').disabled) return;
+            
+            playerSequence.push(num);
+            piece.classList.add('correct');
+            
+            if (playerSequence.length === sequence.length) {
+                setTimeout(() => {
+                    if (JSON.stringify(playerSequence) === JSON.stringify(sequence)) {
+                        alert('🎉 Perfect memory! You got it!');
+                        nextStage(6);
+                    } else {
+                        alert('❌ Not quite right! Try again!');
+                        playerSequence = [];
+                        document.querySelectorAll('.puzzle-piece').forEach(p => p.classList.remove('correct'));
+                    }
+                }, 500);
+            }
+        }
+
+        function createConfetti() {
+            for (let i = 0; i < 100; i++) {
+                setTimeout(() => {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti';
+                    confetti.style.left = Math.random() * 100 + '%';
+                    confetti.style.background = ['#667eea', '#764ba2', '#f093fb', '#f5576c', '#ffd89b'][Math.floor(Math.random() * 5)];
+                    confetti.style.animationDelay = Math.random() * 3 + 's';
+                    document.body.appendChild(confetti);
+                    setTimeout(() => confetti.remove(), 3000);
+                }, i * 30);
+            }
+        }
+
+        updateProgress();
+    </script>
+</body>
+</html>
